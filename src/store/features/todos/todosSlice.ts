@@ -38,6 +38,12 @@ export const todosSlice = createSlice({
         state.todos[todoIndex].status = "removed";
       }
     },
+    forceRemoveTodo: (state, { payload }: PayloadAction<{ id: string }>) => {
+      state.todos.splice(
+        state.todos.findIndex((todo) => todo.id === payload.id),
+        1
+      );
+    },
     completeTodo: (state, { payload }: PayloadAction<{ id: string }>) => {
       console.log(payload.id);
       const todoIndex = state.todos.findIndex((todo) => todo.id === payload.id);
@@ -54,8 +60,13 @@ export const todosSlice = createSlice({
   },
 });
 
-export const { addTodo, removeTodo, completeTodo, returnTodo } =
-  todosSlice.actions;
+export const {
+  addTodo,
+  removeTodo,
+  forceRemoveTodo,
+  completeTodo,
+  returnTodo,
+} = todosSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectTodos = (state: RootState) => state.todos;

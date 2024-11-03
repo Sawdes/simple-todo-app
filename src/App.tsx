@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "./hooks/storeHooks";
 import {
   addTodo,
   completeTodo,
+  forceRemoveTodo,
   removeTodo,
   returnTodo,
   TodoStatus,
@@ -28,13 +29,13 @@ export default function App() {
   const removedTodos = todos.filter((todo) => todo.status === "removed");
 
   return (
-    <div className="max-w-2xl mx-auto py-2">
-      <p className="text-5xl text-center p-6 ">Спсиок задач</p>
+    <div className="max-w-2xl mx-auto p-2">
+      <p className="text-5xl text-center p-6 ">Список задач</p>
       <Card>
         <CardBody>
           <p className="text-2xl">Создать задачу</p>
           <form
-            className="flex gap-2 my-2 items-end"
+            className="flex flex-col md:flex-row gap-2 my-2 items-end"
             onSubmit={(e) => handleSubmit(e)}
           >
             <Input
@@ -47,7 +48,7 @@ export default function App() {
           </form>
         </CardBody>
       </Card>
-      <div className="space-y-4 mt-4">
+      <div className="space-y-4 mt-4 bg-primary-100 rounded-md p-2">
         {processTodos.length > 0 && "В процессе:"}
         {processTodos.map((todo) => (
           <Todo
@@ -61,7 +62,7 @@ export default function App() {
           />
         ))}
       </div>
-      <div className="space-y-4 mt-4">
+      <div className="space-y-4 mt-4 bg-green-500 rounded-md p-2">
         {completedTodos.length > 0 && "Выполненые:"}
         {completedTodos.map((todo) => (
           <Todo
@@ -75,7 +76,7 @@ export default function App() {
           />
         ))}
       </div>
-      <div className="space-y-4 mt-4">
+      <div className="space-y-4 mt-4 bg-black rounded-md p-2">
         {removedTodos.length > 0 && "Удалены:"}
         {removedTodos.map((todo) => (
           <Todo
@@ -85,7 +86,7 @@ export default function App() {
             status={todo.status}
             onComplete={() => dispatch(completeTodo({ id: todo.id }))}
             onReturn={() => dispatch(returnTodo({ id: todo.id }))}
-            onRemove={() => dispatch(removeTodo({ id: todo.id }))}
+            onRemove={() => dispatch(forceRemoveTodo({ id: todo.id }))}
           />
         ))}
       </div>
@@ -104,46 +105,50 @@ interface TodoProps {
 
 function Todo({ name, id, status, onComplete, onRemove, onReturn }: TodoProps) {
   return (
-    <motion.div initial={{ translateY: 60 }} animate={{ translateY: 0 }}>
+    <motion.div
+      className="mt-2"
+      initial={{ translateY: 60 }}
+      animate={{ translateY: 0 }}
+    >
       <Card className={status === "removed" ? "line-through" : ""}>
         <CardHeader className="flex gap-3">
-          <p className="text-lg font-medium">{name}</p>
+          <p
+            className={`text-lg font-medium ${
+              status === "completed" ? "text-green-500" : ""
+            }`}
+          >
+            {name}
+          </p>
         </CardHeader>
         <Divider />
         <CardFooter className="flex justify-between text-primary gap-2">
           <div className="">
             <p className="text-xs font-thin">id: {id}</p>
           </div>
-          <div className="space-x-2">
+          <div className="flex gap-2">
             {status === "completed" || status === "removed" ? (
               <ReturnButton onCLick={onReturn} />
             ) : (
               ""
             )}
             <RemoveButton onRemove={onRemove} />
-            {status !== "completed" ? (
+            {status !== "completed" && status !== "removed" ? (
               <CompleteButton onCLick={onComplete} />
             ) : (
               ""
             )}
           </div>
         </CardFooter>
-        <div
-          className={`absolute bg-black size-full pointer-events-none opacity-${
-            status === "removed" ? "50" : "0"
-          }`}
-        ></div>
+        {status === "removed" && (
+          <div
+            className={`absolute bg-black size-full opacity-${
+              status === "removed" ? "50" : "0"
+            }`}
+          ></div>
+        )}
       </Card>
     </motion.div>
   );
-}
-
-interface AddButtonProps {
-  onAdd: () => void;
-}
-
-function AddButton({ onAdd }: AddButtonProps) {
-  return <Button onClick={onAdd}>add</Button>;
 }
 
 interface RemoveButtonProps {
@@ -156,7 +161,7 @@ function RemoveButton({ onRemove, ...props }: RemoveButtonProps) {
       isIconOnly
       onClick={onRemove}
       color="danger"
-      className="p-2"
+      className="p-2 z-20"
       {...props}
     >
       <CiTrash className="size-full" />
@@ -182,7 +187,7 @@ interface ReturnButtonProps {
 
 function ReturnButton({ onCLick }: ReturnButtonProps) {
   return (
-    <Button isIconOnly onClick={onCLick} color="default" className="p-2">
+    <Button isIconOnly onClick={onCLick} color="default" className="p-2 z-10">
       <TiArrowBack className="size-full text-white" />
     </Button>
   );
